@@ -172,9 +172,14 @@ jobs:
           fingerprints: 
             - "54:cc:2a:08:ac:da:f5:5e:b9:08:60:d9:ab:f6:67:58"
       - attach_workspace:
-          at: ~/      
+          at: ~/
       - run:
-          name: Install dependencies
+          name: install dependencies
+          command: |
+            apk add --update ansible python3 py3-pip
+            pip install awscli          
+      - run:
+          name: Configure server
           command: |
             # Your code here
             cd .circleci/ansible
