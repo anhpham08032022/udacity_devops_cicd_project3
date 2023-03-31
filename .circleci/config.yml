@@ -219,20 +219,17 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - run: 
-          name: install tar gzip and curl
+          name: installing all dependencies at once
           command: |
-            yum -y install tar 
-            yum -y install gzip
-            yum -y install curl
-      - run: 
-          name: install Dependencies
-          command: |
-            curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
-            yum install -y nodejs      
+            apk add tar 
+            apk add nodejs
+            apk add npm
+            apk add curl
+            pip install awscli --upgrade    
       - run:  
           name: Get backend API
           command: |
