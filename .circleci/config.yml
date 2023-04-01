@@ -223,7 +223,7 @@ jobs:
     steps:
       - checkout
       - run: 
-          name: installing all dependencies at once
+          name: Install dependencies
           command: |
             apk add tar 
             apk add nodejs
@@ -231,19 +231,16 @@ jobs:
             apk add curl
             pip install awscli --upgrade    
       - run:  
-          name: Get backend API
+          name: Get backend url
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text)
             export API_URL="http://${BACKEND_IP}:3030"
-            echo API_URL="http://${BACKEND_IP}:3030" >> "frontend/.env"
-            export API_URL="http://${BACKEND_API}:3030"
-            echo "${API_URL}"    
-            echo ENVIRONMENT=production  >> "frontend/.env" 
-            echo NODE_ENV=production >> "frontend/.env"
-            cat "frontend/.env"
+            echo "API_URL = ${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
       - run:  
           name: configure server
           working_directory: ./frontend         
@@ -255,18 +252,14 @@ jobs:
             ls -la
             npm run build
       - run:
-          name: List frontend files
-          working_directory: ./frontend/dist
-          command: |
-            ls
-      - run:
-          name: Deploy frontend object to S3
+          name: Deploy frontend object
           working_directory: ./frontend
           command: |
             aws s3 cp ./dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}                            
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
+                            
 workflows:
   default:
     jobs:
