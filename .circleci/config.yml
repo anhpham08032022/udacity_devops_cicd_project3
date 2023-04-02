@@ -397,8 +397,6 @@ jobs:
       - run:
           name: Fetch oldStack Workflow ID
           command: |
-            set AWS_REGION=us-east-1
-            set AWS_DEFAULT_REGION==us-east-1
             export OldWorkflowID=$(aws cloudformation \
                     list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
                     --no-paginate --output text)
@@ -415,6 +413,7 @@ jobs:
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-cloudfront-${OldWorkflowID}"
             else
               echo "----------------- Cannot Cleanup ------------------"
             fi                                 
