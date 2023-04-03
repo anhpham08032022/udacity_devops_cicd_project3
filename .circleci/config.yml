@@ -375,14 +375,26 @@ jobs:
           name: Install dependencies
           command: |
             yum install -y tar gzip curl
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-build]            
       - run:
           name: Update cloudfront distribution
           command: |
+            export OldWorkflowID=$(aws cloudformation list-exports --query Exports[?Name==\`WorkflowID\`].Value --no-paginate --output text --region=us-east-1)
+            echo $OldWorkflowID >> .circleci/files/oldworkflow.txt
+            cat .circleci/files/oldworkflow.txt
+
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
               --stack-name InitialStack \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/files/oldworkflow.txt        
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
@@ -394,10 +406,15 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/ 
+      - restore_cache:
+          keys: [backend-build]     
       - run:
           name: Fetch oldStack Workflow ID
           command: |
-            export OldWorkflowID=$(aws cloudformation list-exports --query Exports[?Name==\`WorkflowID\`].Value --no-paginate --output text --region=us-east-1)
+            # export OldWorkflowID=$(aws cloudformation list-exports --query Exports[?Name==\`WorkflowID\`].Value --no-paginate --output text --region=us-east-1)
+            export OldWorkflowID=($(cat .circleci/files/oldworkflow.txt))
             echo OldWorkflowID: "${OldWorkflowID}"
             echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
             # Fetch the stack names          
